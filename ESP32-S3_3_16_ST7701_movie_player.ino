@@ -9,6 +9,7 @@
 enum MovieScanResult
 {
   MOVIE_SCAN_PLAYED = 0,
+  MOVIE_SCAN_NO_CARD,
   MOVIE_SCAN_NO_FOLDER,
   MOVIE_SCAN_NO_MOVIES,
 };
@@ -113,6 +114,50 @@ static void stopWithStatus(const char *line1, const char *line2 = NULL)
   }
 }
 
+static bool recoverSDCard()
+{
+  showStatus("CHECKING SD CARD", "READING MEDIA");
+  Serial.println("Attempting SD remount...");
+
+  if (!remountSDCard())
+  {
+    showStatus("INSERT SD CARD", "WAITING FOR MEDIA");
+    delay(MJPEG_RETRY_DELAY_MS);
+    return false;
+  }
+
+  Serial.println("SD card mounted");
+  showStatus("SD CARD READY", "READING MJPEG FOLDER");
+  delay(200);
+  return true;
+}
+
+static bool ensureSDCardReady()
+{
+  if (isSDCardAccessible())
+  {
+    return true;
+  }
+
+  return recoverSDCard();
+}
+
+static bool openMovieDirectory(const char *directoryPath, File &directory)
+{
+  if (!openSDDirectory(directoryPath, directory))
+  {
+    return false;
+  }
+
+  if (!directory.isDirectory())
+  {
+    directory.close();
+    return false;
+  }
+
+  return true;
+}
+
 static bool playMovieFile(const char *path)
 {
   if (path == NULL || path[0] == '\0')
@@ -153,16 +198,22 @@ static bool playMovieFile(const char *path)
 static MovieScanResult playMoviesFromDirectory(const char *directoryPath)
 {
   File directory;
-  if (!openSDDirectory(directoryPath, directory) || !directory.isDirectory())
+  if (!openMovieDirectory(directoryPath, directory))
   {
-    if (directory)
-    {
-      directory.close();
-    }
-
     Serial.print("Directory open failed: ");
     Serial.println(directoryPath);
-    return MOVIE_SCAN_NO_FOLDER;
+
+    if (!recoverSDCard())
+    {
+      return MOVIE_SCAN_NO_CARD;
+    }
+
+    if (!openMovieDirectory(directoryPath, directory))
+    {
+      Serial.print("Directory still unavailable after remount: ");
+      Serial.println(directoryPath);
+      return MOVIE_SCAN_NO_FOLDER;
+    }
   }
 
   bool foundMovie = false;
@@ -201,6 +252,31 @@ static MovieScanResult playMoviesFromDirectory(const char *directoryPath)
   }
 
   directory.close();
+
+  if (!foundMovie)
+  {
+    File verifyDirectory;
+    if (!openMovieDirectory(directoryPath, verifyDirectory))
+    {
+      Serial.print("Directory verify failed: ");
+      Serial.println(directoryPath);
+
+      if (!recoverSDCard())
+      {
+        return MOVIE_SCAN_NO_CARD;
+      }
+
+      if (!openMovieDirectory(directoryPath, verifyDirectory))
+      {
+        Serial.print("Directory missing after remount verify: ");
+        Serial.println(directoryPath);
+        return MOVIE_SCAN_NO_FOLDER;
+      }
+    }
+
+    verifyDirectory.close();
+  }
+
   return foundMovie ? MOVIE_SCAN_PLAYED : MOVIE_SCAN_NO_MOVIES;
 }
 
@@ -220,18 +296,31 @@ void setup()
     stopWithStatus("DISPLAY INIT FAILED");
   }
 
+  initNextVideoButton();
+
   if (!initSDCard())
   {
-    stopWithStatus("SD MOUNT FAILED");
+    showStatus("INSERT SD CARD", "WAITING FOR MEDIA");
+    return;
   }
 
-  initNextVideoButton();
   showStatus("PLAYER READY", "READING MJPEG FOLDER");
 }
 
 void loop()
 {
+  if (!ensureSDCardReady())
+  {
+    return;
+  }
+
   MovieScanResult result = playMoviesFromDirectory(MJPEG_DIRECTORY_PATH);
+
+  if (result == MOVIE_SCAN_NO_CARD)
+  {
+    ensureSDCardReady();
+    return;
+  }
 
   if (result == MOVIE_SCAN_NO_FOLDER)
   {

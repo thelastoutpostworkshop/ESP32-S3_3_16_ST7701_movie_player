@@ -45,3 +45,25 @@ bool remountSDCard()
   delay(SDMMC_REMOUNT_DELAY_MS);
   return initSDCard();
 }
+
+bool isSDCardAccessible()
+{
+  if (SD_MMC.cardType() == CARD_NONE)
+  {
+    return false;
+  }
+
+  if (SD_MMC.totalBytes() == 0)
+  {
+    return false;
+  }
+
+  File root = SD_MMC.open("/");
+  bool ok = root && root.isDirectory();
+  if (root)
+  {
+    root.close();
+  }
+
+  return ok;
+}
