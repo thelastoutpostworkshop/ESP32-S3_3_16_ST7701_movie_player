@@ -109,6 +109,40 @@ DisplayDriver *gfx = &nativeDisplay;
 static esp_lcd_panel_handle_t nativePanel = nullptr;
 static uint16_t *nativeLineBuffer = nullptr;
 static bool nativeDisplayReady = false;
+static const uint8_t kNativeFontWidth = 5;
+static const uint8_t kNativeFontHeight = 7;
+static const uint8_t kNativeFontAdvance = 6;
+
+// Minimal 5x7 uppercase font for centered status text on the native backend.
+static const uint8_t kNativeUppercaseFont[][kNativeFontHeight] = {
+    {0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11}, // A
+    {0x1E, 0x11, 0x11, 0x1E, 0x11, 0x11, 0x1E}, // B
+    {0x0E, 0x11, 0x10, 0x10, 0x10, 0x11, 0x0E}, // C
+    {0x1E, 0x11, 0x11, 0x11, 0x11, 0x11, 0x1E}, // D
+    {0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x1F}, // E
+    {0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x10}, // F
+    {0x0E, 0x11, 0x10, 0x10, 0x13, 0x11, 0x0F}, // G
+    {0x11, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11}, // H
+    {0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1F}, // I
+    {0x01, 0x01, 0x01, 0x01, 0x11, 0x11, 0x0E}, // J
+    {0x11, 0x12, 0x14, 0x18, 0x14, 0x12, 0x11}, // K
+    {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x1F}, // L
+    {0x11, 0x1B, 0x15, 0x15, 0x11, 0x11, 0x11}, // M
+    {0x11, 0x19, 0x15, 0x13, 0x11, 0x11, 0x11}, // N
+    {0x0E, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E}, // O
+    {0x1E, 0x11, 0x11, 0x1E, 0x10, 0x10, 0x10}, // P
+    {0x0E, 0x11, 0x11, 0x11, 0x15, 0x12, 0x0D}, // Q
+    {0x1E, 0x11, 0x11, 0x1E, 0x14, 0x12, 0x11}, // R
+    {0x0F, 0x10, 0x10, 0x0E, 0x01, 0x01, 0x1E}, // S
+    {0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04}, // T
+    {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E}, // U
+    {0x11, 0x11, 0x11, 0x11, 0x11, 0x0A, 0x04}, // V
+    {0x11, 0x11, 0x11, 0x15, 0x15, 0x15, 0x0A}, // W
+    {0x11, 0x11, 0x0A, 0x04, 0x0A, 0x11, 0x11}, // X
+    {0x11, 0x11, 0x0A, 0x04, 0x04, 0x04, 0x04}, // Y
+    {0x1F, 0x01, 0x02, 0x04, 0x08, 0x10, 0x1F}, // Z
+};
+static const uint8_t kNativeSpaceGlyph[kNativeFontHeight] = {0, 0, 0, 0, 0, 0, 0};
 
 static const uint8_t kSt7701RgbctrlC300 =
     (uint8_t)(((IDF_LCD_VSYNC_ACTIVE_HIGH ? 1 : 0) << 3) |
@@ -398,6 +432,105 @@ static void drawBitmapClipped(int32_t x, int32_t y, const uint16_t *bitmap, int3
   }
 }
 
+static void fillSolidRectClipped(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t color)
+{
+  if (!nativeDisplayReady || nativePanel == NULL || nativeLineBuffer == NULL || w <= 0 || h <= 0)
+  {
+    return;
+  }
+
+  int32_t dstX = x;
+  int32_t dstY = y;
+  int32_t drawW = w;
+  int32_t drawH = h;
+
+  if (dstX < 0)
+  {
+    drawW += dstX;
+    dstX = 0;
+  }
+  if (dstY < 0)
+  {
+    drawH += dstY;
+    dstY = 0;
+  }
+  if ((dstX + drawW) > LCD_H_RES)
+  {
+    drawW = LCD_H_RES - dstX;
+  }
+  if ((dstY + drawH) > LCD_V_RES)
+  {
+    drawH = LCD_V_RES - dstY;
+  }
+  if (drawW <= 0 || drawH <= 0)
+  {
+    return;
+  }
+
+  for (int32_t col = 0; col < drawW; col++)
+  {
+    nativeLineBuffer[col] = color;
+  }
+
+  for (int32_t row = 0; row < drawH; row++)
+  {
+    esp_lcd_panel_draw_bitmap(nativePanel, dstX, dstY + row, dstX + drawW, dstY + row + 1, nativeLineBuffer);
+  }
+}
+
+static const uint8_t *lookupNativeGlyph(char c)
+{
+  if (c >= 'a' && c <= 'z')
+  {
+    c = (char)(c - ('a' - 'A'));
+  }
+
+  if (c >= 'A' && c <= 'Z')
+  {
+    return kNativeUppercaseFont[c - 'A'];
+  }
+
+  if (c == ' ')
+  {
+    return kNativeSpaceGlyph;
+  }
+
+  return kNativeSpaceGlyph;
+}
+
+static void drawNativeTextChar(int32_t x, int32_t y, char c, uint16_t color, uint8_t scale)
+{
+  const uint8_t *glyph = lookupNativeGlyph(c);
+  if (glyph == NULL)
+  {
+    return;
+  }
+
+  if (scale == 0)
+  {
+    scale = 1;
+  }
+
+  for (uint8_t row = 0; row < kNativeFontHeight; row++)
+  {
+    uint8_t bits = glyph[row];
+    for (uint8_t col = 0; col < kNativeFontWidth; col++)
+    {
+      if ((bits & (1U << (kNativeFontWidth - 1 - col))) == 0)
+      {
+        continue;
+      }
+
+      fillSolidRectClipped(
+          x + (int32_t)col * scale,
+          y + (int32_t)row * scale,
+          scale,
+          scale,
+          color);
+    }
+  }
+}
+
 void DisplayDriver::fillScreen(uint16_t color)
 {
   if (!nativeDisplayReady || nativePanel == NULL || nativeLineBuffer == NULL)
@@ -458,21 +591,51 @@ size_t DisplayDriver::print(const char *text)
   {
     return 0;
   }
-  // Native backend keeps status visibility on serial until text rendering
-  // is needed for this backend.
-  Serial.print(text);
-  return strlen(text);
+
+  size_t written = 0;
+  int16_t cursorX = _cursorX;
+  int16_t cursorY = _cursorY;
+  uint8_t scale = (_textSize == 0) ? 1 : _textSize;
+  int16_t lineAdvance = (int16_t)kNativeFontAdvance * scale;
+  int16_t rowAdvance = (int16_t)(kNativeFontHeight + 1) * scale;
+
+  while (*text)
+  {
+    char c = *text++;
+    if (c == '\r')
+    {
+      continue;
+    }
+    if (c == '\n')
+    {
+      cursorX = _cursorX;
+      cursorY = (int16_t)(cursorY + rowAdvance);
+      continue;
+    }
+
+    drawNativeTextChar(cursorX, cursorY, c, _textColor, scale);
+    cursorX = (int16_t)(cursorX + lineAdvance);
+    written++;
+  }
+
+  _cursorX = cursorX;
+  _cursorY = cursorY;
+  return written;
 }
 
 size_t DisplayDriver::println(const char *text)
 {
   if (text == NULL)
   {
-    Serial.println();
+    _cursorX = 0;
+    _cursorY = (int16_t)(_cursorY + (int16_t)(kNativeFontHeight + 1) * ((_textSize == 0) ? 1 : _textSize));
     return 1;
   }
-  Serial.println(text);
-  return strlen(text) + 1;
+
+  size_t written = print(text);
+  _cursorX = 0;
+  _cursorY = (int16_t)(_cursorY + (int16_t)(kNativeFontHeight + 1) * ((_textSize == 0) ? 1 : _textSize));
+  return written + 1;
 }
 
 bool initDisplay()

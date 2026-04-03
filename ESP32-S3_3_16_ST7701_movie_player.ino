@@ -4,6 +4,52 @@
 #include "sd_card_setup.h"
 #include "screen_config.h"
 
+enum MovieScanResult
+{
+  MOVIE_SCAN_PLAYED = 0,
+  MOVIE_SCAN_NO_FOLDER,
+  MOVIE_SCAN_NO_MOVIES,
+};
+
+static int16_t centeredTextWidth(const char *text, uint8_t textSize)
+{
+  if (text == NULL)
+  {
+    return 0;
+  }
+
+  return (int16_t)(strlen(text) * 6 * textSize);
+}
+
+static uint8_t pickCenteredTextSize(const char *line1, const char *line2)
+{
+  int16_t displayWidth = gfx->width();
+  int16_t displayHeight = gfx->height();
+  int lineCount = (line2 != NULL && line2[0] != '\0') ? 2 : 1;
+
+  for (uint8_t size = 4; size >= 1; size--)
+  {
+    int16_t width1 = centeredTextWidth(line1, size);
+    int16_t width2 = centeredTextWidth(line2, size);
+    int16_t maxWidth = (width1 > width2) ? width1 : width2;
+    int16_t lineHeight = (int16_t)(8 * size);
+    int16_t lineGap = (int16_t)(3 * size);
+    int16_t totalHeight = (int16_t)(lineCount * lineHeight + ((lineCount - 1) * lineGap));
+
+    if (maxWidth <= (displayWidth - 20) && totalHeight <= (displayHeight - 20))
+    {
+      return size;
+    }
+
+    if (size == 1)
+    {
+      break;
+    }
+  }
+
+  return 1;
+}
+
 static void showStatus(const char *line1, const char *line2 = NULL)
 {
   if (gfx != NULL)
@@ -19,6 +65,40 @@ static void showStatus(const char *line1, const char *line2 = NULL)
   if (line2 != NULL && line2[0] != '\0')
   {
     Serial.println(line2);
+  }
+
+  if (gfx == NULL || line1 == NULL || line1[0] == '\0')
+  {
+    return;
+  }
+
+  uint8_t textSize = pickCenteredTextSize(line1, line2);
+  int16_t lineHeight = (int16_t)(8 * textSize);
+  int16_t lineGap = (int16_t)(3 * textSize);
+  int lineCount = (line2 != NULL && line2[0] != '\0') ? 2 : 1;
+  int16_t totalHeight = (int16_t)(lineCount * lineHeight + ((lineCount - 1) * lineGap));
+  int16_t y = (int16_t)((gfx->height() - totalHeight) / 2);
+
+  gfx->setTextColor(RGB565_WHITE);
+  gfx->setTextSize(textSize);
+
+  int16_t x1 = (int16_t)((gfx->width() - centeredTextWidth(line1, textSize)) / 2);
+  if (x1 < 0)
+  {
+    x1 = 0;
+  }
+  gfx->setCursor(x1, y);
+  gfx->print(line1);
+
+  if (lineCount > 1)
+  {
+    int16_t x2 = (int16_t)((gfx->width() - centeredTextWidth(line2, textSize)) / 2);
+    if (x2 < 0)
+    {
+      x2 = 0;
+    }
+    gfx->setCursor(x2, (int16_t)(y + lineHeight + lineGap));
+    gfx->print(line2);
   }
 }
 
@@ -59,7 +139,7 @@ static bool playMovieFile(const char *path)
   return ok;
 }
 
-static bool playMoviesFromDirectory(const char *directoryPath)
+static MovieScanResult playMoviesFromDirectory(const char *directoryPath)
 {
   File directory;
   if (!openSDDirectory(directoryPath, directory) || !directory.isDirectory())
@@ -71,7 +151,7 @@ static bool playMoviesFromDirectory(const char *directoryPath)
 
     Serial.print("Directory open failed: ");
     Serial.println(directoryPath);
-    return false;
+    return MOVIE_SCAN_NO_FOLDER;
   }
 
   bool foundMovie = false;
@@ -110,14 +190,14 @@ static bool playMoviesFromDirectory(const char *directoryPath)
   }
 
   directory.close();
-  return foundMovie;
+  return foundMovie ? MOVIE_SCAN_PLAYED : MOVIE_SCAN_NO_MOVIES;
 }
 
 void setup()
 {
   Serial.begin(115200);
   delay(200);
-  Serial.println("ST7701 MJPEG SD player init...");
+  Serial.println("ST7701 MJPEG SD PLAYER INIT...");
 
   if (sdPinsOverlapLcdSpi())
   {
@@ -126,24 +206,31 @@ void setup()
 
   if (!initDisplay())
   {
-    stopWithStatus("Display init failed");
+    stopWithStatus("DISPLAY INIT FAILED");
   }
 
   if (!initSDCard())
   {
-    stopWithStatus("SD mount failed");
+    stopWithStatus("SD MOUNT FAILED");
   }
 
-  showStatus("Player ready", MJPEG_DIRECTORY_PATH);
+  showStatus("PLAYER READY", "READING MJPEG FOLDER");
 }
 
 void loop()
 {
-  bool playedAny = playMoviesFromDirectory(MJPEG_DIRECTORY_PATH);
+  MovieScanResult result = playMoviesFromDirectory(MJPEG_DIRECTORY_PATH);
 
-  if (!playedAny)
+  if (result == MOVIE_SCAN_NO_FOLDER)
   {
-    showStatus("No MJPEG files found", MJPEG_DIRECTORY_PATH);
+    showStatus("NO MJPEG FOLDER", "CREATE FOLDER ON SD");
+    delay(MJPEG_RETRY_DELAY_MS);
+    return;
+  }
+
+  if (result == MOVIE_SCAN_NO_MOVIES)
+  {
+    showStatus("NO MOVIES TO PLAY", "COPY MJPEG FILES TO SD");
     delay(MJPEG_RETRY_DELAY_MS);
     return;
   }
