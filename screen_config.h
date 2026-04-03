@@ -77,7 +77,6 @@
 #define SDMMC_REMOUNT_DELAY_MS 50
 
 #define MJPEG_DIRECTORY_PATH "/mjpeg"
-#define MJPEG_FILE_PATH "/mjpeg/schematic_2.mjpeg"
 #define MJPEG_LOOP_FOREVER 1
 #define MJPEG_RETRY_DELAY_MS 1000
 #define MJPEG_BUFFER_SIZE_BYTES (768 * 1024)

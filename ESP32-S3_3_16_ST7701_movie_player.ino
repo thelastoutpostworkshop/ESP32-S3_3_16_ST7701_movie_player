@@ -113,18 +113,6 @@ static bool playMoviesFromDirectory(const char *directoryPath)
   return foundMovie;
 }
 
-static bool playFallbackMovie()
-{
-  if (MJPEG_FILE_PATH[0] == '\0')
-  {
-    return false;
-  }
-
-  Serial.print("Falling back to configured file: ");
-  Serial.println(MJPEG_FILE_PATH);
-  return playMovieFile(MJPEG_FILE_PATH);
-}
-
 void setup()
 {
   Serial.begin(115200);
@@ -155,12 +143,9 @@ void loop()
 
   if (!playedAny)
   {
-    if (!playFallbackMovie())
-    {
-      showStatus("No MJPEG files found", MJPEG_DIRECTORY_PATH);
-      delay(MJPEG_RETRY_DELAY_MS);
-      return;
-    }
+    showStatus("No MJPEG files found", MJPEG_DIRECTORY_PATH);
+    delay(MJPEG_RETRY_DELAY_MS);
+    return;
   }
 
 #if MJPEG_LOOP_FOREVER
