@@ -7,6 +7,8 @@
 #include "display_setup.h"
 #include "media_file_helpers.h"
 #include "mjpeg_class.h"
+#include "next_video_button.h"
+#include "playback_abort.h"
 #include "screen_config.h"
 
 static MjpegClass mjpeg;
@@ -19,7 +21,7 @@ static const bool kMjpegUseBigEndian = false;
 static const bool kMjpegUseBigEndian = true;
 #endif
 
-static void logMjpegPlaybackStats(const char *path, uint32_t frameCount, uint32_t elapsedMs, bool success)
+static void logMjpegPlaybackStats(const char *path, uint32_t frameCount, uint32_t elapsedMs, bool success, bool aborted)
 {
   float fps = 0.0f;
   if (elapsedMs > 0)
@@ -36,7 +38,9 @@ static void logMjpegPlaybackStats(const char *path, uint32_t frameCount, uint32_
   Serial.print(" fps=");
   Serial.print(fps, 2);
   Serial.print(" success=");
-  Serial.println(success ? "true" : "false");
+  Serial.print(success ? "true" : "false");
+  Serial.print(" aborted=");
+  Serial.println(aborted ? "true" : "false");
 }
 
 static int jpegDrawCallback(JPEGDRAW *pDraw)
@@ -126,11 +130,20 @@ bool playMjpegOnce(const char *path)
 
   while (mjpegFile.available())
   {
+    pollNextVideoButton();
+    if (isPlaybackAbortRequested())
+    {
+      uint32_t elapsedMs = millis() - startMs;
+      logMjpegPlaybackStats(path, frameCount, elapsedMs, false, true);
+      mjpegFile.close();
+      return false;
+    }
+
     if (!mjpeg.readMjpegBuf())
     {
       Serial.println("mjpeg parse failed (bad stream or buffer too small)");
       uint32_t elapsedMs = millis() - startMs;
-      logMjpegPlaybackStats(path, frameCount, elapsedMs, false);
+      logMjpegPlaybackStats(path, frameCount, elapsedMs, false, false);
       mjpegFile.close();
       return false;
     }
@@ -143,7 +156,7 @@ bool playMjpegOnce(const char *path)
 
   uint32_t elapsedMs = millis() - startMs;
   bool success = frameCount > 0;
-  logMjpegPlaybackStats(path, frameCount, elapsedMs, success);
+  logMjpegPlaybackStats(path, frameCount, elapsedMs, success, false);
 
   return success;
 }

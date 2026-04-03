@@ -1,6 +1,8 @@
 #include "display_setup.h"
 #include "media_file_helpers.h"
 #include "mjpeg_helpers.h"
+#include "next_video_button.h"
+#include "playback_abort.h"
 #include "sd_card_setup.h"
 #include "screen_config.h"
 
@@ -118,6 +120,8 @@ static bool playMovieFile(const char *path)
     return false;
   }
 
+  clearPlaybackAbort();
+
   if (!mediaPathIsMjpeg(path))
   {
     Serial.print("Skipping unsupported file: ");
@@ -130,6 +134,13 @@ static bool playMovieFile(const char *path)
   gfx->fillScreen(RGB565_BLACK);
 
   bool ok = playMjpegOnce(path);
+  if (isPlaybackAbortRequested())
+  {
+    Serial.println("BOOT button pressed: skipping to next video");
+    clearPlaybackAbort();
+    return true;
+  }
+
   if (!ok)
   {
     Serial.print("Playback failed: ");
@@ -214,6 +225,7 @@ void setup()
     stopWithStatus("SD MOUNT FAILED");
   }
 
+  initNextVideoButton();
   showStatus("PLAYER READY", "READING MJPEG FOLDER");
 }
 
