@@ -90,7 +90,13 @@
 #define SHAKE_NEXT_VIDEO_ACCEL_DELTA_G 0.80f
 #define SHAKE_NEXT_VIDEO_GYRO_DPS 150.0f
 
+// Folder on the SD card to scan for playable .mjpeg / .mjpg files.
+// Example: "/mjpeg"
 #define MJPEG_DIRECTORY_PATH "/mjpeg"
+// 1 = after finishing all MJPEG files in the folder, start again from the first file.
+// 0 = play the folder once, then stop on a "Playback complete" screen.
 #define MJPEG_LOOP_FOREVER 1
+// Delay in milliseconds before retrying after missing SD card, missing folder, or no playable movies.
 #define MJPEG_RETRY_DELAY_MS 1000
+// Size of the MJPEG decode/read buffer in bytes. Larger values can help with bigger frames but use more RAM/PSRAM.
 #define MJPEG_BUFFER_SIZE_BYTES (768 * 1024)
