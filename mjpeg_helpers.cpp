@@ -9,6 +9,7 @@
 #include "mjpeg_class.h"
 #include "next_video_button.h"
 #include "playback_abort.h"
+#include "shake_next_video.h"
 #include "screen_config.h"
 
 static MjpegClass mjpeg;
@@ -130,6 +131,7 @@ bool playMjpegOnce(const char *path)
 
   while (mjpegFile.available())
   {
+    pollShakeNextVideo();
     pollNextVideoButton();
     if (isPlaybackAbortRequested())
     {

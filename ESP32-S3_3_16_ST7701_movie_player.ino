@@ -3,6 +3,7 @@
 #include "mjpeg_helpers.h"
 #include "next_video_button.h"
 #include "playback_abort.h"
+#include "shake_next_video.h"
 #include "sd_card_setup.h"
 #include "screen_config.h"
 
@@ -181,7 +182,7 @@ static bool playMovieFile(const char *path)
   bool ok = playMjpegOnce(path);
   if (isPlaybackAbortRequested())
   {
-    Serial.println("BOOT button pressed: skipping to next video");
+    Serial.println("Skip requested: advancing to next video");
     clearPlaybackAbort();
     return true;
   }
@@ -297,6 +298,7 @@ void setup()
   }
 
   initNextVideoButton();
+  initShakeNextVideo();
 
   if (!initSDCard())
   {
@@ -309,6 +311,8 @@ void setup()
 
 void loop()
 {
+  pollShakeNextVideo();
+
   if (!ensureSDCardReady())
   {
     return;
