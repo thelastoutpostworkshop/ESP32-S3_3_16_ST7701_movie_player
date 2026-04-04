@@ -28,14 +28,24 @@
 // Size of the MJPEG decode/read buffer in bytes. Larger values can help with bigger frames but use more RAM/PSRAM.
 #define MJPEG_BUFFER_SIZE_BYTES (768 * 1024)
 
+// Shake-to-next-video detection tuning for the IMU.
+// Adjust these only if you want the shake gesture to be more or less sensitive.
+// IMU polling interval in milliseconds.
 #define SHAKE_NEXT_VIDEO_POLL_INTERVAL_MS 20
+// Ignore motion for this long after startup so initialization movement does not trigger a skip.
 #define SHAKE_NEXT_VIDEO_STARTUP_SETTLE_MS 1200
+// Minimum time between accepted shake-to-skip events.
 #define SHAKE_NEXT_VIDEO_COOLDOWN_MS 900
+// Time window in milliseconds in which multiple shake pulses must occur.
 #define SHAKE_NEXT_VIDEO_CONFIRM_WINDOW_MS 260
+// Number of qualifying shake pulses required before skipping to the next video.
 #define SHAKE_NEXT_VIDEO_REQUIRED_PULSES 2
+// Minimum accelerometer delta in g between samples to count as a shake pulse.
 #define SHAKE_NEXT_VIDEO_ACCEL_DELTA_G 0.80f
+// Minimum gyroscope magnitude in degrees/sec to count as a shake pulse.
 #define SHAKE_NEXT_VIDEO_GYRO_DPS 150.0f
 
+// Debounce time in milliseconds for the next-video button input.
 #define NEXT_VIDEO_BUTTON_DEBOUNCE_MS 40
 
 // ---------------------------------------------------------------------------
