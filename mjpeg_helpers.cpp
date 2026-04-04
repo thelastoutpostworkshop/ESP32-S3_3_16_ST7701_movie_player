@@ -16,11 +16,7 @@ static MjpegClass mjpeg;
 static File mjpegFile;
 static uint8_t *mjpegBuffer = NULL;
 
-#if DISPLAY_BACKEND == DISPLAY_BACKEND_NATIVE_IDF
 static const bool kMjpegUseBigEndian = false;
-#else
-static const bool kMjpegUseBigEndian = true;
-#endif
 
 static void logMjpegPlaybackStats(const char *path, uint32_t frameCount, uint32_t elapsedMs, bool success, bool aborted)
 {
@@ -46,23 +42,8 @@ static void logMjpegPlaybackStats(const char *path, uint32_t frameCount, uint32_
 
 static int jpegDrawCallback(JPEGDRAW *pDraw)
 {
-#if DISPLAY_BACKEND == DISPLAY_BACKEND_NATIVE_IDF
   draw16bitRGBBitmapFastNoClip(pDraw->x, pDraw->y, pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
   return 1;
-#else
-  if (pDraw->x < 0 || pDraw->y < 0)
-  {
-    return 1;
-  }
-
-  if ((pDraw->x + pDraw->iWidth) > gfx->width() || (pDraw->y + pDraw->iHeight) > gfx->height())
-  {
-    return 1;
-  }
-
-  gfx->draw16bitBeRGBBitmap(pDraw->x, pDraw->y, pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
-  return 1;
-#endif
 }
 
 static bool initMjpegBuffer()

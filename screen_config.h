@@ -3,8 +3,6 @@
 #define LCD_ROTATION 0
 #define LCD_H_RES 320
 #define LCD_V_RES 820
-// Display backend: 0 = Arduino_GFX_Library, 1 = native IDF esp_lcd path.
-#define DISPLAY_BACKEND 1
 
 // Native IDF backend timings (manufacturer profile).
 #define IDF_LCD_PCLK_HZ 16000000 

@@ -1,26 +1,7 @@
 #pragma once
 
-#define DISPLAY_BACKEND_ARDUINO_GFX 0
-#define DISPLAY_BACKEND_NATIVE_IDF 1
-
-#include "screen_config.h"
-
-#ifndef DISPLAY_BACKEND
-#define DISPLAY_BACKEND DISPLAY_BACKEND_ARDUINO_GFX
-#endif
-
-#if (DISPLAY_BACKEND != DISPLAY_BACKEND_ARDUINO_GFX) && (DISPLAY_BACKEND != DISPLAY_BACKEND_NATIVE_IDF)
-#error "DISPLAY_BACKEND must be DISPLAY_BACKEND_ARDUINO_GFX (0) or DISPLAY_BACKEND_NATIVE_IDF (1)"
-#endif
-
-#if DISPLAY_BACKEND == DISPLAY_BACKEND_ARDUINO_GFX
-
-#include <Arduino_GFX_Library.h>
-using DisplayDriver = Arduino_RGB_Display;
-
-#else
-
 #include <Arduino.h>
+#include "screen_config.h"
 
 #ifndef RGB565_BLACK
 #define RGB565_BLACK 0x0000
@@ -53,8 +34,6 @@ private:
   int16_t _cursorX = 0;
   int16_t _cursorY = 0;
 };
-
-#endif
 
 extern DisplayDriver *gfx;
 

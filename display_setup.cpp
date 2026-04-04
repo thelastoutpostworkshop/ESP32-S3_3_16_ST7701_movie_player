@@ -18,78 +18,6 @@ static void setBacklight(uint8_t duty_8bit)
   }
 }
 
-#if DISPLAY_BACKEND == DISPLAY_BACKEND_ARDUINO_GFX
-
-#include "st7701_320x820_init.h"
-
-static Arduino_DataBus *bus = new Arduino_SWSPI(
-    GFX_NOT_DEFINED /* DC */,
-    LCD_PIN_SPI_CS /* CS */,
-    LCD_PIN_SPI_SCK /* SCK */,
-    LCD_PIN_SPI_SDO /* MOSI */,
-    GFX_NOT_DEFINED /* MISO */);
-
-static Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
-    LCD_PIN_DE,
-    LCD_PIN_VSYNC,
-    LCD_PIN_HSYNC,
-    LCD_PIN_PCLK,
-    LCD_PIN_R0,
-    LCD_PIN_R1,
-    LCD_PIN_R2,
-    LCD_PIN_R3,
-    LCD_PIN_R4,
-    LCD_PIN_G0,
-    LCD_PIN_G1,
-    LCD_PIN_G2,
-    LCD_PIN_G3,
-    LCD_PIN_G4,
-    LCD_PIN_G5,
-    LCD_PIN_B0,
-    LCD_PIN_B1,
-    LCD_PIN_B2,
-    LCD_PIN_B3,
-    LCD_PIN_B4,
-    LCD_HSYNC_POLARITY,
-    LCD_HSYNC_FRONT_PORCH,
-    LCD_HSYNC_PULSE_WIDTH,
-    LCD_HSYNC_BACK_PORCH,
-    LCD_VSYNC_POLARITY,
-    LCD_VSYNC_FRONT_PORCH,
-    LCD_VSYNC_PULSE_WIDTH,
-    LCD_VSYNC_BACK_PORCH,
-    LCD_PCLK_ACTIVE_NEG,
-    LCD_PCLK_HZ,
-    false /* useBigEndian */);
-
-DisplayDriver *gfx = new Arduino_RGB_Display(
-    LCD_H_RES,
-    LCD_V_RES,
-    rgbpanel,
-    LCD_ROTATION,
-    true /* auto_flush */,
-    bus,
-    LCD_PIN_RESET,
-    st7701_320x820_init_operations,
-    sizeof(st7701_320x820_init_operations));
-
-bool initDisplay()
-{
-  setBacklight(LCD_BACKLIGHT_DEFAULT_BRIGHTNESS);
-  return gfx->begin();
-}
-
-void draw16bitRGBBitmapFastNoClip(int32_t x, int32_t y, const uint16_t *bitmap, int32_t w, int32_t h)
-{
-  if (bitmap == NULL || w <= 0 || h <= 0)
-  {
-    return;
-  }
-  gfx->draw16bitRGBBitmap(x, y, bitmap, w, h);
-}
-
-#else
-
 extern "C"
 {
 #include "esp_lcd_panel_io_additions.h"
@@ -643,5 +571,3 @@ bool initDisplay()
   setBacklight(LCD_BACKLIGHT_DEFAULT_BRIGHTNESS);
   return gfx->begin();
 }
-
-#endif
