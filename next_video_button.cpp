@@ -3,7 +3,7 @@
 #include <Arduino.h>
 
 #include "playback_abort.h"
-#include "screen_config.h"
+#include "app_config.h"
 
 static bool g_lastRawPressed = false;
 static bool g_stablePressed = false;

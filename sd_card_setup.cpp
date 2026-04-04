@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <SD_MMC.h>
 
-#include "screen_config.h"
+#include "app_config.h"
 
 bool sdPinsOverlapLcdSpi()
 {

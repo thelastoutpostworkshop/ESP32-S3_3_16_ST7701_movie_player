@@ -5,7 +5,7 @@
 #include "playback_abort.h"
 #include "shake_next_video.h"
 #include "sd_card_setup.h"
-#include "screen_config.h"
+#include "app_config.h"
 
 enum MovieScanResult
 {

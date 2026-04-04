@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "screen_config.h"
+#include "app_config.h"
 
 #ifndef RGB565_BLACK
 #define RGB565_BLACK 0x0000

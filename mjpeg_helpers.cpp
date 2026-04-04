@@ -10,7 +10,7 @@
 #include "next_video_button.h"
 #include "playback_abort.h"
 #include "shake_next_video.h"
-#include "screen_config.h"
+#include "app_config.h"
 
 static MjpegClass mjpeg;
 static File mjpegFile;

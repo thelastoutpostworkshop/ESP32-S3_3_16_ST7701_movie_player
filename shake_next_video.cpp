@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#include "screen_config.h"
+#include "app_config.h"
 
 #if SHAKE_NEXT_VIDEO_ENABLED
 #include <math.h>
