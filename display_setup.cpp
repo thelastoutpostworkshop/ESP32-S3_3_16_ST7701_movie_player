@@ -1,3 +1,5 @@
+// Purpose: Initializes the native ST7701 display path and provides drawing helpers
+// used by the MJPEG player and status UI.
 #include "display_setup.h"
 
 #include <Arduino.h>

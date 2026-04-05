@@ -1,3 +1,5 @@
+// Purpose: Provides the MJPEG stream reader that extracts JPEG frames from a file
+// buffer for playback on the display.
 #pragma once
 
 #include <Arduino.h>

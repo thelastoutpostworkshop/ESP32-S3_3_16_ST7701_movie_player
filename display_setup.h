@@ -1,3 +1,5 @@
+// Purpose: Declares the display abstraction and native drawing interface used by
+// the MJPEG player.
 #pragma once
 
 #include <Arduino.h>

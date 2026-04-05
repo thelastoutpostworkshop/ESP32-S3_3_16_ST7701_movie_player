@@ -1,3 +1,4 @@
+// Purpose: Implements simple path helpers for recognizing playable MJPEG media files.
 #include "media_file_helpers.h"
 
 #include <Arduino.h>

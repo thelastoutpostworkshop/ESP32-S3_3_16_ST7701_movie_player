@@ -1,3 +1,5 @@
+// Purpose: Main application entry point for the MJPEG SD player, including status
+// messages, SD recovery, directory scanning, and playback control flow.
 #include "display_setup.h"
 #include "media_file_helpers.h"
 #include "mjpeg_helpers.h"

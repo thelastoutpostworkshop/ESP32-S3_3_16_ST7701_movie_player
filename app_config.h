@@ -1,3 +1,5 @@
+// Purpose: User-facing app settings plus advanced tuning and hardware configuration
+// for the ESP32-S3 MJPEG SD player.
 #pragma once
 
 // ---------------------------------------------------------------------------

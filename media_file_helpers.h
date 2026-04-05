@@ -1,3 +1,4 @@
+// Purpose: Declares helper functions for filtering supported MJPEG file paths.
 #pragma once
 
 #include <FS.h>

@@ -1,3 +1,5 @@
+// Purpose: Handles SD_MMC mounting, remounting, and basic file/directory access
+// for the MJPEG player.
 #include "sd_card_setup.h"
 
 #include <Arduino.h>

@@ -1,3 +1,5 @@
+// Purpose: Reads the QMI8658 IMU and turns qualifying shake gestures into
+// skip-to-next-video requests.
 #include "shake_next_video.h"
 
 #include <Arduino.h>

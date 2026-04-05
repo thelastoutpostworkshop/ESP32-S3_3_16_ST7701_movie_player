@@ -1,3 +1,5 @@
+// Purpose: Opens MJPEG files, feeds them through the MJPEG parser, and draws the
+// decoded frames while honoring skip requests.
 #include "mjpeg_helpers.h"
 
 #include <Arduino.h>

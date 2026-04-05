@@ -1,3 +1,5 @@
+// Purpose: Debounces the next-video button input and converts presses into playback
+// skip requests.
 #include "next_video_button.h"
 
 #include <Arduino.h>
