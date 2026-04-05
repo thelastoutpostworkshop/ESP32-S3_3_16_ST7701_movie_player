@@ -15,6 +15,7 @@ enum MovieScanResult
   MOVIE_SCAN_NO_MOVIES,
 };
 
+// Estimates the pixel width of a centered status string using the current text scale.
 static int16_t centeredTextWidth(const char *text, uint8_t textSize)
 {
   if (text == NULL)
@@ -25,6 +26,7 @@ static int16_t centeredTextWidth(const char *text, uint8_t textSize)
   return (int16_t)(strlen(text) * 6 * textSize);
 }
 
+// Picks the largest readable text size that fits one or two centered status lines on screen.
 static uint8_t pickCenteredTextSize(const char *line1, const char *line2)
 {
   int16_t displayWidth = gfx->width();
@@ -54,6 +56,7 @@ static uint8_t pickCenteredTextSize(const char *line1, const char *line2)
   return 1;
 }
 
+// Clears the screen, logs the message to serial, and draws centered status text.
 static void showStatus(const char *line1, const char *line2 = NULL)
 {
   if (gfx != NULL)
@@ -106,6 +109,7 @@ static void showStatus(const char *line1, const char *line2 = NULL)
   }
 }
 
+// Shows a final status message and halts the application.
 static void stopWithStatus(const char *line1, const char *line2 = NULL)
 {
   showStatus(line1, line2);
@@ -115,6 +119,7 @@ static void stopWithStatus(const char *line1, const char *line2 = NULL)
   }
 }
 
+// Attempts to remount the SD card and updates the display with recovery progress.
 static bool recoverSDCard()
 {
   showStatus("CHECKING SD CARD", "READING MEDIA");
@@ -133,6 +138,7 @@ static bool recoverSDCard()
   return true;
 }
 
+// Returns true when the SD card is readable, otherwise tries to recover it.
 static bool ensureSDCardReady()
 {
   if (isSDCardAccessible())
@@ -143,6 +149,7 @@ static bool ensureSDCardReady()
   return recoverSDCard();
 }
 
+// Opens the configured movie folder and verifies that the path is a directory.
 static bool openMovieDirectory(const char *directoryPath, File &directory)
 {
   if (!openSDDirectory(directoryPath, directory))
@@ -159,6 +166,7 @@ static bool openMovieDirectory(const char *directoryPath, File &directory)
   return true;
 }
 
+// Plays one MJPEG file and treats button or IMU aborts as "skip to next video".
 static bool playMovieFile(const char *path)
 {
   if (path == NULL || path[0] == '\0')
@@ -196,6 +204,7 @@ static bool playMovieFile(const char *path)
   return ok;
 }
 
+// Scans the movie folder, plays each supported file once, and reports why playback stopped.
 static MovieScanResult playMoviesFromDirectory(const char *directoryPath)
 {
   File directory;
@@ -281,6 +290,7 @@ static MovieScanResult playMoviesFromDirectory(const char *directoryPath)
   return foundMovie ? MOVIE_SCAN_PLAYED : MOVIE_SCAN_NO_MOVIES;
 }
 
+// Initializes serial output, display, input controls, IMU, and the SD card.
 void setup()
 {
   Serial.begin(115200);
@@ -309,6 +319,7 @@ void setup()
   showStatus("PLAYER READY", "READING MJPEG FOLDER");
 }
 
+// Keeps the player running by polling controls, recovering media, and replaying the folder.
 void loop()
 {
   pollShakeNextVideo();
