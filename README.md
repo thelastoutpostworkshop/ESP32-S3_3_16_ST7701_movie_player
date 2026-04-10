@@ -1,14 +1,22 @@
 # ESP32-S3 MJPEG SD Player
 
 [<img src="https://github.com/thelastoutpostworkshop/images/blob/main/ESP32S3_3_15_video_player-2.png">](https://youtu.be/_j7xE0pcTng)
-# Video Conversion Studio
+
 <a href="https://www.buymeacoffee.com/thelastoutpostworkshop" target="_blank">
 <img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee">
 </a>
 
 This application turns the Waveshare ESP32-S3 3.16" (320x820) into a simple full-screen MJPEG video player for the built-in ST7701 display.
 
-Video Conversion Studio : https://thelastoutpostworkshop.github.io/video_conversion/
+<p align="center">
+  <a href="https://thelastoutpostworkshop.github.io/video_conversion/">
+    <img src="https://img.shields.io/badge/Open-Video%20Conversion%20Studio-FF6A00?style=for-the-badge" alt="Open Video Conversion Studio">
+  </a>
+</p>
+
+<p align="center">
+  Need to convert your videos first? Use <a href="https://thelastoutpostworkshop.github.io/video_conversion/"><strong>Video Conversion Studio</strong></a> to prepare MJPEG files for this player.
+</p>
 
 It is designed to:
 - play `.mjpeg` and `.mjpg` files from an SD card
