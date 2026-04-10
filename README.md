@@ -8,6 +8,8 @@
 
 This application turns the Waveshare ESP32-S3 3.16" (320x820) into a simple full-screen MJPEG video player for the built-in ST7701 display.
 
+Video Conversion Studio : https://thelastoutpostworkshop.github.io/video_conversion/
+
 It is designed to:
 - play `.mjpeg` and `.mjpg` files from an SD card
 - run without WebConfigKit or a web UI
