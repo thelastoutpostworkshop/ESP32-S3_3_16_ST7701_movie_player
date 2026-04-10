@@ -6,7 +6,7 @@
 <img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee">
 </a>
 
-This application turns the board into a simple full-screen MJPEG video player for the built-in ST7701 display.
+This application turns the Waveshare ESP32-S3 3.16" (320x820) into a simple full-screen MJPEG video player for the built-in ST7701 display.
 
 It is designed to:
 - play `.mjpeg` and `.mjpg` files from an SD card
